@@ -1,56 +1,47 @@
-from model_objects import ProductUnit
+from model_objects import Discount, Product
+from receipt import Receipt, ReceiptItem
+from jinja2 import Environment, FileSystemLoader
 
 class ReceiptPrinter:
+    def __init__(self):
+        self.env = Environment(loader=FileSystemLoader('templates/'))
+        self.template = self.env.get_template('receipt_template.html')
 
-    def __init__(self, columns=40):
-        self.columns = columns
-  
-    def print_receipt(self, receipt):
-        result = ""
-        for item in receipt.items:
-            receipt_item = self.print_receipt_item(item)
-            result += receipt_item
 
-        for discount in receipt.discounts:
-            discount_presentation = self.print_discount(discount)
-            result += discount_presentation
+    def print_receipt(self, receipt: Receipt):
+        receipt_items = [self._format_receipt_item(item) for item in receipt.items]
+        discounts = [self._format_discount(discount) for discount in receipt.discounts]
+        total = receipt.total_price()
+        return self.template.render(receipt_items=receipt_items, discounts=discounts, total=total)
 
-        result += "\n"
-        result += self.present_total(receipt)
-        return str(result)
-
-    def print_receipt_item(self, item):
-        total_price_printed = self.print_price(item.total_price)
+    def _format_receipt_item(self, item: ReceiptItem):
         name = item.product.name
-        line = self.format_line_with_whitespace(name, total_price_printed)
-        if item.quantity != 1:
-            line += f"  {self.print_price(item.price)} * {self.print_quantity(item)}\n"
-        return line
+        quantity = item.quantity
+        price = item.price
+        total_price = item.total_price
 
-    def format_line_with_whitespace(self, name, value):
-        line = name
-        whitespace_size = self.columns - len(name) - len(value)
-        for i in range(whitespace_size):
-            line += " "
-        line += value
-        line += "\n"
-        return line
+        return {
+            'name': name,
+            'quantity': quantity,
+            'price': self._format_price(price),
+            'total_price': self._format_price(total_price),
+        }
 
-    def print_price(self, price):
-        return "%.2f" % price
+    def _format_discount(self, discount: Discount):
+        product = discount.product
+        description = discount.description
+        discount_amount = discount.discount_amount
 
-    def print_quantity(self, item):
-        if ProductUnit.EACH == item.product.unit:
-            return str(item.quantity)
+        if isinstance(product, Product):
+            name = product.name
         else:
-            return '%.3f' % item.quantity
+            name = ', '.join(p.name for p in product)
 
-    def print_discount(self, discount):
-        name = f"{discount.description} ({discount.product.name})"
-        value = self.print_price(discount.discount_amount)
-        return self.format_line_with_whitespace(name, value)
+        return {
+            'name': name,
+            'description': description,
+            'discount_amount': self._format_price(discount_amount),
+        }
 
-    def present_total(self, receipt):
-        name = "Total: "
-        value = self.print_price(receipt.total_price())
-        return self.format_line_with_whitespace(name, value)
+    def _format_price(self, price: float):
+        return f'${price:.2f}'
