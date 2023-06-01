@@ -1,21 +1,10 @@
-import unittest
-
-from approvaltests.approvals import verify  # type: ignore
-from approvaltests.core.options import Options  # type: ignore
-
-from model_objects import Product, ProductUnit, Discount
+from model_objects import Discount
 from receipt import Receipt
-from receipt_printer import ReceiptPrinter
+from tests.utils import TestCase
 
-
-class ReceiptPrinterTest(unittest.TestCase):
+class ReceiptPrinterTest(TestCase):
     def setUp(self):
-        self.toothbrush = Product(name="toothbrush", unit=ProductUnit.EACH)
-        self.apples = Product(name="apples", unit=ProductUnit.KILO)
         self.receipt = Receipt()
-
-    def compare_with_html(self, receipt: Receipt):
-        verify(ReceiptPrinter().print_receipt(receipt), options=Options({'extension_with_dot': '.html'}))
 
     def test_one_line_item(self):
         self.receipt.add_product(self.toothbrush, 1, 0.99, 0.99)

@@ -1,36 +1,26 @@
-import unittest
 from pytest import approx  # type: ignore
 
-from approvaltests.approvals import verify  # type: ignore
-from approvaltests.core.options import Options  # type: ignore
-
-from model_objects import Product, SpecialOfferType, ProductUnit
-from receipt import Receipt
-from receipt_printer import ReceiptPrinter
+from model_objects import SpecialOfferType
 from shopping_cart import ShoppingCart
 from teller import Teller
 from tests.fake_catalog import FakeCatalog
+from tests.utils import TestCase
 
+class SupermarketTest(TestCase):
 
-class SupermarketTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.catalog = FakeCatalog()
+        cls.catalog.add_product(cls.toothbrush, 0.99)
+        cls.catalog.add_product(cls.toothpaste, 1.79)
+        cls.catalog.add_product(cls.rice, 2.99)
+        cls.catalog.add_product(cls.apples, 1.99)
+        cls.catalog.add_product(cls.cherry_tomatoes, 0.69)
+
     def setUp(self):
-        self.catalog = FakeCatalog()
         self.teller = Teller(catalog=self.catalog, offers=[])
         self.the_cart = ShoppingCart()
-
-        self.toothbrush = Product(name="toothbrush", unit=ProductUnit.EACH)
-        self.catalog.add_product(self.toothbrush, 0.99)
-        self.toothpaste = Product(name="toothpaste", unit=ProductUnit.EACH)
-        self.catalog.add_product(self.toothpaste, 1.79)
-        self.rice = Product(name="rice", unit=ProductUnit.EACH)
-        self.catalog.add_product(self.rice, 2.99)
-        self.apples = Product(name="apples", unit=ProductUnit.KILO)
-        self.catalog.add_product(self.apples, 1.99)
-        self.cherry_tomatoes = Product(name="cherry tomatoes", unit=ProductUnit.EACH)
-        self.catalog.add_product(self.cherry_tomatoes, 0.69)
-
-    def compare_with_html(self, receipt: Receipt):
-        verify(ReceiptPrinter().print_receipt(receipt), options=Options({'extension_with_dot': '.html'}))
 
     def test_an_empty_shopping_cart_should_cost_nothing(self):
         receipt = self.teller.checks_out_articles_from(self.the_cart)
