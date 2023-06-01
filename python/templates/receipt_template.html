@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Receipt</title>
+</head>
+
+<body>
+    <h1>Receipt</h1>
+    <table>
+        <tbody>
+            {% for item in receipt_items %}
+                {% if item.quantity > 1 %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.price }} * {{item.quantity}}</td>
+                        <td>{{ item.total_price }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td></td>
+                        <td>{{ item.total_price }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+        <tbody>
+            {% for discount in discounts %}
+            <tr>
+                <td>{{ discount.description }}</td>
+                <td>({{ discount.name }})</td>
+                <td>{{ discount.discount_amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h3>Total: {{ total }}</h3>
+</body>
+
+</html>

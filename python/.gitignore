@@ -73,4 +73,7 @@ target/
 .python-version
 venv
 
+# VS Code
+.vscode
+
 .idea
